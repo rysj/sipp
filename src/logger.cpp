@@ -41,8 +41,9 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #include "logger.hpp"
+#include "screen.hpp"
+#include "sipp.hpp"
 
 #define SIPP_ENDL "\r\n"
 
