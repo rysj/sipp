@@ -151,6 +151,9 @@ struct sipp_option options_table[] = {
 #ifdef USE_TLS
         "- l1: TLS with one socket,\n"
         "- ln: TLS with one socket per call,\n"
+		// Add helpl options for TLS version and CIPHER name
+        "- tls_ver: Set the TLS Protocol version. Any=0(D), TLSv1.0=1, TLSv1.1=2, TLSv1.2=3\n"
+        "- tls_cipher: Set the TLS Cipher in OPENSSL cipher format string\n"
 #endif
 #ifdef USE_SCTP
         "- s1: SCTP with one socket,\n"
@@ -177,12 +180,16 @@ struct sipp_option options_table[] = {
     {"tls_ca", "Set the name for TLS CA file. If not specified, X509 verification is not activated.", SIPP_OPTION_STRING, &tls_ca_name, 1},
     {"tls_crl", "Set the name for Certificate Revocation List file. If not specified, X509 CRL is not activated.", SIPP_OPTION_STRING, &tls_crl_name, 1},
     {"tls_version", "Set the TLS protocol version to use (1.0, 1.1, 1.2) -- default is autonegotiate", SIPP_OPTION_FLOAT, &tls_version, 1},
+	{"tls_ver", "Set the TLS Protocol version.Any=0(D), TLSv1.0=1, TLSv1.1=2, TLSv1.2=3", SIPP_OPTION_INT, &tls_prot_ver, 1},
+    {"tls_cipher", "Set the Cipher given for selected TLS Protocol version.Accepts OPENSSL cipher format string.", SIPP_OPTION_STRING, &tls_ciphers, 1},
 #else
     {"tls_cert", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
     {"tls_key", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
     {"tls_ca", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
     {"tls_crl", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
-    {"tls_version", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
+	{"tls_version", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
+    {"tls_ver", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
+	{"tls_cipher", NULL, SIPP_OPTION_NEED_SSL, NULL, 1},
 #endif
 
 #ifdef USE_SCTP

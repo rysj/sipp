@@ -113,6 +113,7 @@
 #define DEFAULT_TLS_KEY            "cakey.pem"
 #define DEFAULT_TLS_CA             ""
 #define DEFAULT_TLS_CRL            ""
+#define DEFAULT_TLS_CIPHERS            ((char *)"ALL")
 #endif
 
 #define TRANSPORT_TO_STRING(p)     ((p==T_TCP) ? "TCP" : ((p==T_TLS)? "TLS" : ((p==T_UDP)? "UDP" : "SCTP")))
@@ -315,6 +316,8 @@ MAYBE_EXTERN const char       * tls_key_name            DEFVAL(DEFAULT_TLS_KEY);
 MAYBE_EXTERN const char       * tls_ca_name             DEFVAL(DEFAULT_TLS_CA);
 MAYBE_EXTERN const char       * tls_crl_name            DEFVAL(DEFAULT_TLS_CRL);
 MAYBE_EXTERN double             tls_version             DEFVAL(0.0);
+MAYBE_EXTERN int                tls_prot_ver 		   	DEFVAL(0);
+MAYBE_EXTERN char             *tls_ciphers				DEFVAL(DEFAULT_TLS_CIPHERS)  ;
 #endif
 
 MAYBE_EXTERN char*              scenario_file           DEFVAL(NULL);

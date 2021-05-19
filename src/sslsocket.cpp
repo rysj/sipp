@@ -212,19 +212,92 @@ static SSL_CTX* instantiate_ssl_context(const char* context_name)
 /************* Prepare the SSL context ************************/
 enum tls_init_status TLS_init_context(void)
 {
-    sip_trp_ssl_ctx = instantiate_ssl_context("generic");
+    //const char *pStr="ALL:DES-CBC-SHA";
+  switch(tls_prot_ver)
+  {
+     case 3:
+         {
+            fprintf(stderr,"Operating TLSv1.2.\r\n");
+                sleep(1);
+            sip_trp_ssl_ctx = SSL_CTX_new( TLSv1_2_server_method() );
+            sip_trp_ssl_ctx_client = SSL_CTX_new( TLSv1_2_client_method() );
+                SSL_CTX_set_options(sip_trp_ssl_ctx,SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1|SSL_OP_NO_TLSv1_1|SSL_OP_SINGLE_ECDH_USE);
+                SSL_CTX_set_options(sip_trp_ssl_ctx_client,SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1|SSL_OP_NO_TLSv1_1|SSL_OP_SINGLE_ECDH_USE);
+                fprintf(stderr, "Client Options set : 0x%08lX.\r\n",
+                SSL_CTX_get_options(sip_trp_ssl_ctx_client));
+                fprintf(stderr, "Server Options set : 0x%08lX.\r\n",
+                SSL_CTX_get_options(sip_trp_ssl_ctx));
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx,tls_ciphers);
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx_client,tls_ciphers);
+                EC_KEY *ecdh;
+                ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+                //ecdh = EC_KEY_new_by_curve_name(NID_ansi_X9_62);
+                if (ecdh!=NULL) {
+                                fprintf(stderr,"Programming ECDHE.\r\n");
+                        SSL_CTX_set_tmp_ecdh(sip_trp_ssl_ctx,ecdh);
+                        SSL_CTX_set_tmp_ecdh(sip_trp_ssl_ctx_client,ecdh);
+                        EC_KEY_free(ecdh);
+                        }
+                fprintf(stderr, "TLSv1.2 confiugured. Starting the test.\r\n");
+                //sleep(2);
+         }
+     break;
+     case 2:
+         {
+                system("touch TLSv1_1-client-trying;ls -l TLSv1_1-client*;sleep 1;rm TLSv1_1-client-*");
+            fprintf(stdout,"Operating TLSv1.1.\n");
+            sip_trp_ssl_ctx = SSL_CTX_new( TLSv1_1_server_method() );
+            sip_trp_ssl_ctx_client = SSL_CTX_new( TLSv1_1_client_method() );
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx,tls_ciphers);
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx_client,tls_ciphers);
+                fprintf(stderr, "TLSv1.2 confiugured. Starting the test.\r\n");
+                //sleep(2);
+         }
+     break;
+     case 1:
+         {
+                system("touch TLSv1-client-trying;ls -l TLSv1-client*;sleep 1;rm TLSv1-client-*");
+            fprintf(stdout,"Operating TLSv1.0.\n");
+            sip_trp_ssl_ctx = SSL_CTX_new( TLSv1_server_method() );
+            sip_trp_ssl_ctx_client = SSL_CTX_new( TLSv1_client_method() );
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx,tls_ciphers);
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx_client,tls_ciphers);
+                fprintf(stderr, "TLSv1.0 confiugured. Starting the test.\r\n");
+                //sleep(2);
+         }
+     break;
+     case 0:
+         {
+                system("touch ANY-TLS-trying;ls -l ANY-TLS-*;sleep 1;rm ANY-TLS-*");
+            fprintf(stdout,"Operating SSLv3/TLSv1.0/TLSv1.2.\n");
+            sip_trp_ssl_ctx = SSL_CTX_new( SSLv23_server_method() );
+            sip_trp_ssl_ctx_client = SSL_CTX_new( SSLv23_client_method() );
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx,tls_ciphers);
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx_client,tls_ciphers);
+                fprintf(stderr, "TLSvAny confiugured. Starting the test\r\n");
+                //sleep(2);
+         }
+     break;
+     default:
+         {
+                system("touch TLSv1-client-trying;ls -l TLSv1-client*;sleep 1;rm TLSv1-client-*");
+            fprintf(stdout,"Operating default mode - TLSv1.0.\n");
+            sip_trp_ssl_ctx = SSL_CTX_new( TLSv1_method() );
+            sip_trp_ssl_ctx_client = SSL_CTX_new( TLSv1_method() );
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx,tls_ciphers);
+         }
+                SSL_CTX_set_cipher_list(sip_trp_ssl_ctx_client,tls_ciphers);
+     break;
+  }
+  if ( sip_trp_ssl_ctx == NULL ) {
+    ERROR("FI_init_ssl_context: SSL_CTX_new with TLSv1_2_server_method() failed");
+    return TLS_INIT_ERROR;
+  }
 
-    if (sip_trp_ssl_ctx == NULL) {
-        ERROR("TLS_init_context: SSL_CTX_new with TLS_method failed for generic context");
-        return TLS_INIT_ERROR;
-    }
-
-    sip_trp_ssl_ctx_client = instantiate_ssl_context("client");
-
-    if (sip_trp_ssl_ctx_client == NULL) {
-        ERROR("TLS_init_context: SSL_CTX_new with TLS_method failed for client context");
-        return TLS_INIT_ERROR;
-    }
+  if ( sip_trp_ssl_ctx_client == NULL) {
+    ERROR("FI_init_ssl_context: SSL_CTX_new with TLSv1_2_client_method failed");
+    return TLS_INIT_ERROR;
+  }
 
     /* Load the trusted CA's */
     if (strlen(tls_ca_name) != 0) {
